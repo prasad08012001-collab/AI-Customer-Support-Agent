@@ -1,0 +1,68 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Conversation</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body class="chat-page">
+
+<div class="chat-container">
+
+    <div class="chat-header">
+        <h2>💬 Customer Conversation</h2>
+        <p>Complete conversation history</p>
+    </div>
+
+    <div class="chat-toolbar">
+        <a href="{% url 'chat_history' %}">← Back to History</a>
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+    </div>
+
+    <div class="chat-messages">
+
+        {% for msg in messages %}
+
+            {% if msg.message_type == "user" %}
+
+                <div class="message user-message">
+                    <div class="message-label">You</div>
+                    {{ msg.message }}
+
+                    <div class="message-time">
+                        {{ msg.created_at|date:"d M Y, h:i A" }}
+                    </div>
+                </div>
+
+            {% else %}
+
+                <div class="message bot-message">
+                    <div class="message-label">🤖 AI Assistant</div>
+                    {{ msg.message }}
+
+                    <div class="message-time">
+                        {{ msg.created_at|date:"d M Y, h:i A" }}
+                    </div>
+                </div>
+
+            {% endif %}
+
+        {% empty %}
+
+            <div class="empty-message">
+                <h3>No Messages Found</h3>
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

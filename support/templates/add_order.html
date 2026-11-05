@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Order</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 40px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #263238;
+        }
+
+        label {
+            display: block;
+            margin-top: 18px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .success {
+            color: green;
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 5px;
+        }
+
+        .error {
+            color: red;
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 5px;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Add New Order</h1>
+
+    {% if success %}
+        <div class="success">
+            <h3>Order Created Successfully!</h3>
+            <p>Your Order ID: <strong>{{ order.order_id }}</strong></p>
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        <label>Customer Name</label>
+        <input
+            type="text"
+            name="customer_name"
+            placeholder="Enter customer name"
+            required
+        >
+
+        <label>Customer Email</label>
+        <input
+            type="email"
+            name="customer_email"
+            placeholder="Enter customer email"
+            required
+        >
+
+        <label>Product Name</label>
+        <input
+            type="text"
+            name="product_name"
+            placeholder="Enter product name"
+            required
+        >
+
+        <button type="submit">Create Order</button>
+
+    </form>
+
+    <a class="back" href="{% url 'manage_orders' %}">
+        Back to Order Management
+    </a>
+
+</div>
+
+</body>
+</html>

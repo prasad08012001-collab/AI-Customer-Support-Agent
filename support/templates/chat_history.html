@@ -1,0 +1,378 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customer Chat History</title>
+
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+
+    <style>
+        .history-page {
+            min-height: 100vh;
+            padding: 35px 15px;
+            background: #f1f5f9;
+        }
+
+        .history-container {
+            max-width: 950px;
+            margin: auto;
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.10);
+        }
+
+        .history-header {
+            padding: 30px 20px;
+            text-align: center;
+            color: white;
+            background: linear-gradient(120deg, #1976d2, #603be5);
+        }
+
+        .history-header h2 {
+            margin: 0 0 10px;
+            font-size: 27px;
+        }
+
+        .history-header p {
+            margin: 0;
+        }
+
+        .history-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 18px;
+            border-bottom: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .history-nav a {
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 8px;
+            background: #edf3ff;
+            color: #2455b5;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .history-nav a:hover {
+            background: #2455b5;
+            color: white;
+        }
+
+        .history-content {
+            padding: 25px;
+        }
+
+        .history-title {
+            margin: 0 0 20px;
+            color: #263445;
+            font-size: 21px;
+        }
+
+        /* Search Form */
+
+        .history-search {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .history-search input {
+            flex: 1;
+            min-width: 200px;
+            padding: 13px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .history-search input:focus {
+            border-color: #2563eb;
+        }
+
+        .history-search button {
+            padding: 13px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .history-search button:hover {
+            background: #1d4ed8;
+        }
+
+        .history-search a {
+            padding: 13px 17px;
+            border-radius: 8px;
+            background: #e2e8f0;
+            color: #334155;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* Customer Cards */
+
+        .customer-card {
+            margin-bottom: 18px;
+            padding: 22px;
+            border: 1px solid #e2e8f0;
+            border-radius: 13px;
+            background: #ffffff;
+            transition: 0.2s;
+        }
+
+        .customer-card:hover {
+            border-color: #7da5f5;
+            box-shadow: 0 5px 18px rgba(30, 64, 175, 0.08);
+        }
+
+        .customer-card h3 {
+            margin: 0 0 18px;
+            color: #334155;
+            font-size: 18px;
+        }
+
+        .session-id {
+            margin-bottom: 18px;
+            padding: 12px;
+            border-radius: 7px;
+            background: #f1f5f9;
+            color: #475569;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+        }
+
+        .session-id strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #334155;
+        }
+
+        .history-stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            padding: 14px;
+            border-radius: 9px;
+            background: #f8fafc;
+        }
+
+        .stat-box span {
+            display: block;
+            margin-bottom: 7px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .stat-box strong {
+            color: #1e293b;
+            font-size: 15px;
+        }
+
+        .view-button {
+            display: inline-block;
+            padding: 11px 19px;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .view-button:hover {
+            background: #1d4ed8;
+        }
+
+        .no-history {
+            padding: 40px 15px;
+            text-align: center;
+            color: #64748b;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .history-content {
+                padding: 15px;
+            }
+
+            .history-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .history-header h2 {
+                font-size: 22px;
+            }
+
+            .history-nav {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="history-page">
+
+    <div class="history-container">
+
+        <!-- Header -->
+
+        <div class="history-header">
+
+            <h2>📋 Customer Chat History</h2>
+
+            <p>Manage and view customer conversations</p>
+
+        </div>
+
+        <!-- Navigation -->
+
+        <nav class="history-nav">
+
+            <a href="{% url 'dashboard' %}">
+                🏠 Dashboard
+            </a>
+
+            <a href="{% url 'chat' %}">
+                💬 Open Chat
+            </a>
+
+        </nav>
+
+        <!-- History Content -->
+
+        <div class="history-content">
+
+            <h3 class="history-title">
+                Customer Conversations
+            </h3>
+
+            <!-- Search Form -->
+
+            <form method="GET" class="history-search">
+
+                <input
+                    type="text"
+                    name="search"
+                    placeholder="Search by Session ID..."
+                    value="{{ search_query }}"
+                >
+
+                <button type="submit">
+                    🔍 Search
+                </button>
+
+                <a href="{% url 'chat_history' %}">
+                    Clear
+                </a>
+
+            </form>
+
+            <!-- Customer History List -->
+
+            {% for customer in customer_chats %}
+
+                <div class="customer-card">
+
+                    <h3>👤 Customer Session</h3>
+
+                    <div class="session-id">
+
+                        <strong>Session ID</strong>
+
+                        <span title="{{ customer.session_key }}">
+                            {{ customer.session_key }}
+                        </span>
+
+                    </div>
+
+                    <div class="history-stats">
+
+                        <div class="stat-box">
+
+                            <span>📨 Total Messages</span>
+
+                            <strong>
+                                {{ customer.total_messages }}
+                            </strong>
+
+                        </div>
+
+                        <div class="stat-box">
+
+                            <span>🕒 Last Message</span>
+
+                            <strong>
+                                {{ customer.last_message_time|date:"d M Y, h:i A" }}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    <a
+                        href="{% url 'customer_chat_history' customer.session_key %}"
+                        class="view-button">
+
+                        View Conversation →
+
+                    </a>
+
+                </div>
+
+            {% empty %}
+
+                <div class="no-history">
+
+                    <h3>No Customer History Found</h3>
+
+                    {% if search_query %}
+
+                        <p>
+                            No sessions matched "{{ search_query }}".
+                        </p>
+
+                    {% else %}
+
+                        <p>
+                            Customer conversations will appear here.
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

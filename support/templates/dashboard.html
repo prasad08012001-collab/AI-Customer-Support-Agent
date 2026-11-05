@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Customer Support Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .header {
+            background: linear-gradient(120deg, #1e40af, #4f46e5);
+            color: white;
+            padding: 25px 35px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #dbeafe;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .section-title {
+            margin: 32px 0 18px;
+            font-size: 21px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: white;
+            padding: 23px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .05);
+            border: 1px solid #e2e8f0;
+        }
+
+        .card h3 {
+            margin: 0 0 14px;
+            color: #64748b;
+            font-size: 15px;
+        }
+
+        .number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+
+        .green {
+            color: #16a34a;
+        }
+
+        .orange {
+            color: #ea580c;
+        }
+
+        .purple {
+            color: #7c3aed;
+        }
+
+        .cyan {
+            color: #0891b2;
+        }
+
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .links a {
+            text-decoration: none;
+            background: #2563eb;
+            color: white;
+            padding: 12px 18px;
+            border-radius: 7px;
+            transition: .2s;
+        }
+
+        .links a:hover {
+            background: #1d4ed8;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            color: #475569;
+            background: #f8fafc;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            font-weight: bold;
+        }
+
+        .pending {
+            color: #ea580c;
+        }
+
+        .progress {
+            color: #2563eb;
+        }
+
+        .resolved {
+            color: #16a34a;
+        }
+
+        .empty {
+            color: #64748b;
+            padding: 15px 0;
+        }
+
+        .ticket-link,
+        .chat-link {
+            color: #2563eb;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .ticket-link:hover,
+        .chat-link:hover {
+            color: #1d4ed8;
+            text-decoration: underline;
+        }
+
+        .session-id {
+            word-break: break-all;
+            max-width: 300px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 22px;
+            color: #64748b;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="header">
+    <h1>🤖 AI Customer Support Agent</h1>
+    <p>Machine Learning Powered Customer Support Dashboard</p>
+</header>
+
+<main class="container">
+
+    <!-- CHAT OVERVIEW -->
+
+    <h2 class="section-title">💬 Chat Overview</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Chat Sessions</h3>
+            <div class="number">
+                {{ total_chat_sessions }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Total Messages</h3>
+            <div class="number cyan">
+                {{ total_messages }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Total Conversations</h3>
+            <div class="number">
+                {{ total_conversations }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Conversation Success Rate</h3>
+            <div class="number purple">
+                {{ success_rate }}%
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- CONVERSATION OVERVIEW -->
+
+    <h2 class="section-title">📊 Conversation Overview</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Pending Conversations</h3>
+            <div class="number orange">
+                {{ pending_conversations }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Resolved Conversations</h3>
+            <div class="number green">
+                {{ resolved_conversations }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- TICKET OVERVIEW -->
+
+    <h2 class="section-title">🎫 Ticket Overview</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Tickets</h3>
+            <div class="number">
+                {{ total_tickets }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Pending Tickets</h3>
+            <div class="number orange">
+                {{ pending_tickets }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>In Progress Tickets</h3>
+            <div class="number purple">
+                {{ in_progress_tickets }}
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Resolved Tickets</h3>
+            <div class="number green">
+                {{ resolved_tickets }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ORDER OVERVIEW -->
+
+    <h2 class="section-title">📦 Order Overview</h2>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Orders</h3>
+            <div class="number cyan">
+                {{ total_orders }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- QUICK ACTIONS -->
+
+    <h2 class="section-title">⚡ Quick Actions</h2>
+
+    <div class="links">
+
+        <a href="{% url 'chat' %}">💬 Open Chat</a>
+
+        <a href="{% url 'chat_history' %}">📋 Chat History</a>
+
+        <a href="{% url 'create_ticket' %}">🎫 Create Ticket</a>
+
+        <a href="{% url 'check_ticket_status' %}">
+            🔍 Check Ticket Status
+        </a>
+
+        <a href="{% url 'track_order' %}">
+            📦 Track Order
+        </a>
+
+        <a href="/admin/support/ticket/">
+            ⚙️ Manage Tickets
+        </a>
+
+    </div>
+
+
+    <!-- RECENT CUSTOMER CHATS -->
+
+    <h2 class="section-title">💬 Recent Customer Chats</h2>
+
+    <div class="table-container">
+
+        {% if recent_customer_chats %}
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Session ID</th>
+                        <th>Total Messages</th>
+                        <th>Last Message Time</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for chat in recent_customer_chats %}
+
+                        <tr>
+
+                            <td class="session-id">
+                                {{ chat.session_key }}
+                            </td>
+
+                            <td>
+                                {{ chat.total_messages }}
+                            </td>
+
+                            <td>
+                                {{ chat.last_message_time|date:"d M Y, h:i A" }}
+                            </td>
+
+                            <td>
+                                <a
+                                    href="{% url 'customer_chat_history' chat.session_key %}"
+                                    class="chat-link"
+                                >
+                                    View Chat →
+                                </a>
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p class="empty">No customer chats available yet.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- RECENT TICKETS -->
+
+    <h2 class="section-title">🎫 Recent Tickets</h2>
+
+    <div class="table-container">
+
+        {% if recent_tickets %}
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Ticket ID</th>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for ticket in recent_tickets %}
+
+                        <tr>
+
+                            <td>
+                                <a
+                                    href="{% url 'ticket_detail' ticket.id %}"
+                                    class="ticket-link"
+                                >
+                                    #{{ ticket.id }}
+                                </a>
+                            </td>
+
+                            <td>{{ ticket.customer_name }}</td>
+
+                            <td>{{ ticket.customer_email }}</td>
+
+                            <td>{{ ticket.subject }}</td>
+
+                            <td>
+
+                                {% if ticket.status == "Pending" %}
+
+                                    <span class="status pending">
+                                        {{ ticket.status }}
+                                    </span>
+
+                                {% elif ticket.status == "In Progress" %}
+
+                                    <span class="status progress">
+                                        {{ ticket.status }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status resolved">
+                                        {{ ticket.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ ticket.created_at|date:"d M Y, h:i A" }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p class="empty">No tickets available yet.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- RECENT CONVERSATIONS -->
+
+    <h2 class="section-title">🗨️ Recent Conversations</h2>
+
+    <div class="table-container">
+
+        {% if recent_conversations %}
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Customer</th>
+                        <th>Email</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    {% for conversation in recent_conversations %}
+
+                        <tr>
+
+                            <td>{{ conversation.customer_name }}</td>
+
+                            <td>{{ conversation.customer_email }}</td>
+
+                            <td>{{ conversation.subject }}</td>
+
+                            <td>
+
+                                {% if conversation.status == "Pending" %}
+
+                                    <span class="status pending">
+                                        {{ conversation.status }}
+                                    </span>
+
+                                {% elif conversation.status == "In Progress" %}
+
+                                    <span class="status progress">
+                                        {{ conversation.status }}
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status resolved">
+                                        {{ conversation.status }}
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+                                {{ conversation.created_at|date:"d M Y, h:i A" }}
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        {% else %}
+
+            <p class="empty">No conversations available yet.</p>
+
+        {% endif %}
+
+    </div>
+
+</main>
+
+<footer class="footer">
+    AI Customer Support Agent | Dashboard
+</footer>
+
+</body>
+</html>

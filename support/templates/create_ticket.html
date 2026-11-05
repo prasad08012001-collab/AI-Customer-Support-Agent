@@ -1,0 +1,153 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Support Ticket</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 15px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+        }
+
+        .ticket-container {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e293b;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 7px;
+            font-weight: bold;
+            color: #334155;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 130px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 22px;
+            padding: 13px;
+            border: none;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .success {
+            padding: 12px;
+            margin-bottom: 18px;
+            border-radius: 7px;
+            background: #dcfce7;
+            color: #166534;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="ticket-container">
+
+    <h1>Create Support Ticket</h1>
+
+    <p class="subtitle">
+        Tell us about your issue. Our support team will help you.
+    </p>
+
+    {% if success %}
+        <div class="success">
+            Your support ticket was submitted successfully!
+        </div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="customer_name">Customer Name</label>
+        <input
+            type="text"
+            id="customer_name"
+            name="customer_name"
+            placeholder="Enter your name"
+            maxlength="100"
+            required
+        >
+
+        <label for="customer_email">Email Address</label>
+        <input
+            type="email"
+            id="customer_email"
+            name="customer_email"
+            placeholder="Enter your email"
+            required
+        >
+
+        <label for="subject">Subject</label>
+        <input
+            type="text"
+            id="subject"
+            name="subject"
+            placeholder="Enter ticket subject"
+            maxlength="200"
+            required
+        >
+
+        <label for="description">Describe Your Issue</label>
+        <textarea
+            id="description"
+            name="description"
+            placeholder="Explain your issue here..."
+            required
+        ></textarea>
+
+        <button type="submit">
+            Submit Ticket
+        </button>
+
+    </form>
+
+</div>
+
+</body>
+</html>

@@ -118,7 +118,6 @@ Make sure Ollama is running locally.
 ```bash
 python manage.py migrate
 ```
-
 ### 8. Start the Django server
 
 ```bash

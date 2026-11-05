@@ -45,6 +45,26 @@ The application helps customers get AI-generated responses, create support ticke
 - CSS
 - JavaScript
 
+## Project Screenshots
+
+### 1. Admin Dashboard
+![Admin Dashboard](screenshots/dashboard.png)
+
+### 2. AI Chatbot
+![AI Chatbot](screenshots/chatbot.png)
+
+### 3. Manage Tickets
+![Manage Tickets](screenshots/tickets.png)
+
+### 4. Manage Orders
+![Manage Orders](screenshots/orders.png)
+
+### 5. Create Support Ticket
+![Create Support Ticket](screenshots/create_ticket.png)
+
+### 6. Customer Chat History
+![Customer Chat History](screenshots/custmor_chat.png)
+
 ## Project Structure
 
 ```text
@@ -60,6 +80,14 @@ AI_Customer_Support_Agent/
 │   ├── models.py
 │   ├── urls.py
 │   └── views.py
+│
+├── screenshots/
+│   ├── dashboard.png
+│   ├── chatbot.png
+│   ├── tickets.png
+│   ├── orders.png
+│   ├── create_ticket.png
+│   └── custmor_chat.png
 │
 ├── .gitignore
 ├── manage.py
@@ -118,6 +146,7 @@ Make sure Ollama is running locally.
 ```bash
 python manage.py migrate
 ```
+
 ### 8. Start the Django server
 
 ```bash

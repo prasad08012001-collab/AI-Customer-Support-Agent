@@ -1,42 +1,60 @@
 
+import os
 from openai import OpenAI
 
 
-# Connect to Local Ollama Server
-client = OpenAI(
-    base_url="http://localhost:11434/v1/",
-    api_key="ollama"
-)
+def generate_ai_response(message, chat_history=None):
 
+    api_key = os.getenv("GROQ_API_KEY")
 
-# Generate AI Customer Support Reply
-def generate_ai_response(user_message, chat_history=None):
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is missing from environment.")
+
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.groq.com/openai/v1"
+    )
 
     messages = [
         {
             "role": "system",
             "content": (
-                "You are a helpful customer support agent. "
-                "Give polite, clear and short answers to customers. "
-                "Use previous conversation messages as context. "
-                "If you don't know something, don't invent an answer."
+                "You are a helpful AI customer support assistant. "
+                "Answer politely, clearly, and briefly. "
+                "Help users with general customer support questions. "
+                "Never invent order or ticket details. "
+                "For private order or ticket information, "
+                "ask the user to use the application's verification process."
             )
         }
     ]
 
-    # Add Previous Conversation History
     if chat_history:
-        messages.extend(chat_history)
-    else:
+        for item in chat_history[-10:]:
+            role = item.get("role")
+            content = item.get("content")
+
+            if role in ["user", "assistant"] and content:
+                messages.append({
+                    "role": role,
+                    "content": content
+                })
+
+    # Avoid adding the current message twice
+    if not chat_history or not (
+        chat_history[-1].get("role") == "user"
+        and chat_history[-1].get("content") == message
+    ):
         messages.append({
             "role": "user",
-            "content": user_message
+            "content": message
         })
 
-    # Send Request to Ollama
     response = client.chat.completions.create(
-        model="qwen2.5:3b",
-        messages=messages
+        model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
+        messages=messages,
+        temperature=0.5,
+        max_completion_tokens=500
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message.content.strip()

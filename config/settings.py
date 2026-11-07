@@ -5,13 +5,15 @@ from pathlib import Path
 import dj_database_url
 from dotenv import load_dotenv
 
+
 # ---------------------------------
 # BASE DIRECTORY
 # ---------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv(BASE_DIR / ".env")
+
 
 # ---------------------------------
 # SECURITY
@@ -25,9 +27,22 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = [
     host.strip()
-    for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+    for host in os.getenv(
+        "ALLOWED_HOSTS",
+        "127.0.0.1,localhost"
+    ).split(",")
     if host.strip()
 ]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv(
+        "CSRF_TRUSTED_ORIGINS",
+        ""
+    ).split(",")
+    if origin.strip()
+]
+
 
 # ---------------------------------
 # APPLICATION DEFINITION
@@ -51,6 +66,7 @@ INSTALLED_APPS = [
     "support",
 ]
 
+
 # ---------------------------------
 # MIDDLEWARE
 # ---------------------------------
@@ -65,10 +81,12 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+
 # ---------------------------------
 # URL CONFIGURATION
 # ---------------------------------
 ROOT_URLCONF = "config.urls"
+
 
 # ---------------------------------
 # TEMPLATES
@@ -89,10 +107,12 @@ TEMPLATES = [
     },
 ]
 
+
 # ---------------------------------
 # WSGI APPLICATION
 # ---------------------------------
 WSGI_APPLICATION = "config.wsgi.application"
+
 
 # ---------------------------------
 # DATABASE
@@ -115,6 +135,7 @@ else:
         }
     }
 
+
 # ---------------------------------
 # PASSWORD VALIDATION
 # ---------------------------------
@@ -133,6 +154,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+
 # ---------------------------------
 # INTERNATIONALIZATION
 # ---------------------------------
@@ -143,6 +165,7 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 
 USE_TZ = True
+
 
 # ---------------------------------
 # STATIC FILES
@@ -160,10 +183,12 @@ STORAGES = {
     },
 }
 
+
 # ---------------------------------
 # EMAIL
 # ---------------------------------
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
 
 # ---------------------------------
 # DJANGO REST FRAMEWORK
@@ -173,6 +198,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.AllowAny",
     ],
 }
+
 
 # ---------------------------------
 # PRODUCTION SECURITY
@@ -184,6 +210,7 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = "DENY"
+
 
 # ---------------------------------
 # DEFAULT PRIMARY KEY

@@ -509,49 +509,59 @@ def chat(request):
 
         elif request.session.get("waiting_for_order_id"):
 
-            order_match = re.search(
-                ORDER_ID_PATTERN,
-                message,
-                re.IGNORECASE
-            )
+            entered_order_id = message.strip()
 
-            if order_match:
+            order = None
 
-                order_id = order_match.group(0).upper()
+            if entered_order_id.isdigit():
 
-                if Order.objects.filter(
-                    order_id__iexact=order_id
-                ).exists():
+                order = Order.objects.filter(
 
-                    request.session.pop(
-                        "waiting_for_order_id",
-                        None
-                    )
+                    id=int(entered_order_id)
 
-                    request.session["pending_order_id"] = order_id
+                ).first()
 
-                    ai_reply = (
-                        f"I found your order with ID {order_id}. "
-                        "Please enter your registered email address "
-                        "to verify your order details."
-                    )
-
-                else:
-
-                    ai_reply = (
-                        f"Order ID {order_id} not found. "
-                        "Please check your Order ID and try again."
-                    )
 
             else:
 
-                # Cancel old order flow.
-                # The message will go to Ollama below.
+                order = Order.objects.filter(
+
+                    order_id__iexact=entered_order_id
+
+                ).first()
+
+            if order:
+
                 request.session.pop(
+
                     "waiting_for_order_id",
+
                     None
+
                 )
 
+                request.session["pending_order_id"] = order.id
+
+                ai_reply = (
+
+                    f"I found your order with ID {order.order_id}. "
+
+                    "Please enter your registered email address "
+
+                    "to verify your order details."
+
+                )
+
+
+            else:
+
+                ai_reply = (
+
+                    f"Order ID {entered_order_id} not found. "
+
+                    "Please check your Order ID and try again."
+
+                )
         # ---------------------------------
         # 7. ORDER EMAIL VERIFICATION
         # ---------------------------------
@@ -559,12 +569,17 @@ def chat(request):
         elif request.session.get("pending_order_id"):
 
             pending_order_id = request.session.get(
+
                 "pending_order_id"
+
             )
 
             email_match = re.search(
+
                 EMAIL_PATTERN,
+
                 message
+
             )
 
             if email_match:
@@ -574,38 +589,59 @@ def chat(request):
                 try:
 
                     order = Order.objects.get(
-                        order_id__iexact=pending_order_id,
+
+                        id=pending_order_id,
+
                         customer_email__iexact=customer_email
+
                     )
 
                     ai_reply = (
+
                         "Your order details:\n"
+
                         f"Order ID: {order.order_id}\n"
+
                         f"Customer: {order.customer_name}\n"
+
                         f"Product: {order.product_name}\n"
+
                         f"Current Status: {order.status}"
+
                     )
+
+                    request.session.pop(
+
+                        "pending_order_id",
+
+                        None
+
+                    )
+
 
                 except Order.DoesNotExist:
 
                     ai_reply = (
+
                         "We could not find an order matching "
+
                         "that Order ID and email address. "
-                        "Please check your registered email address."
+
+                        "Please check your registered email address "
+
+                        "and try again."
+
                     )
 
-                finally:
-
-                    request.session.pop(
-                        "pending_order_id",
-                        None
-                    )
 
             else:
 
-                request.session.pop(
-                    "pending_order_id",
-                    None
+                ai_reply = (
+
+                    "Please enter a valid registered email address "
+
+                    "to verify your order."
+
                 )
 
         # ---------------------------------

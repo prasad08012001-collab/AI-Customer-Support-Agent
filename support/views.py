@@ -544,7 +544,7 @@ def chat(request):
 
                 )
 
-                request.session["pending_order_id"] = order.id
+                request.session["pending_order_id"] = order.order_id
 
                 ai_reply = (
 

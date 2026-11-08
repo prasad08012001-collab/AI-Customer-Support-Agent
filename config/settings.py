@@ -9,21 +9,26 @@ from dotenv import load_dotenv
 # ---------------------------------
 # BASE DIRECTORY
 # ---------------------------------
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Load environment variables from .env
 load_dotenv(BASE_DIR / ".env")
 
 
 # ---------------------------------
 # SECURITY
 # ---------------------------------
-SECRET_KEY = os.getenv(
-    "DJANGO_SECRET_KEY",
-    "django-insecure-local-development-key-change-before-deployment"
-)
 
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
+
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-local-development-only-key"
+    else:
+        raise ValueError("DJANGO_SECRET_KEY is missing!")
+
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -33,6 +38,7 @@ ALLOWED_HOSTS = [
     ).split(",")
     if host.strip()
 ]
+
 
 CSRF_TRUSTED_ORIGINS = [
     origin.strip()
@@ -47,6 +53,7 @@ CSRF_TRUSTED_ORIGINS = [
 # ---------------------------------
 # APPLICATION DEFINITION
 # ---------------------------------
+
 INSTALLED_APPS = [
     # Django Default Apps
     "django.contrib.admin",
@@ -70,6 +77,7 @@ INSTALLED_APPS = [
 # ---------------------------------
 # MIDDLEWARE
 # ---------------------------------
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -85,12 +93,14 @@ MIDDLEWARE = [
 # ---------------------------------
 # URL CONFIGURATION
 # ---------------------------------
+
 ROOT_URLCONF = "config.urls"
 
 
 # ---------------------------------
 # TEMPLATES
 # ---------------------------------
+
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -111,12 +121,14 @@ TEMPLATES = [
 # ---------------------------------
 # WSGI APPLICATION
 # ---------------------------------
+
 WSGI_APPLICATION = "config.wsgi.application"
 
 
 # ---------------------------------
 # DATABASE
 # ---------------------------------
+
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL:
@@ -139,6 +151,7 @@ else:
 # ---------------------------------
 # PASSWORD VALIDATION
 # ---------------------------------
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -158,6 +171,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # ---------------------------------
 # INTERNATIONALIZATION
 # ---------------------------------
+
 LANGUAGE_CODE = "en-us"
 
 TIME_ZONE = "Asia/Kolkata"
@@ -170,6 +184,7 @@ USE_TZ = True
 # ---------------------------------
 # STATIC FILES
 # ---------------------------------
+
 STATIC_URL = "/static/"
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -187,32 +202,56 @@ STORAGES = {
 # ---------------------------------
 # EMAIL
 # ---------------------------------
+
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 
 # ---------------------------------
 # DJANGO REST FRAMEWORK
 # ---------------------------------
+
 REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.AllowAny",
     ],
+
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "20/hour",
+        "user": "100/hour",
+        "chat": "10/hour",
+    },
 }
 
 
 # ---------------------------------
 # PRODUCTION SECURITY
 # ---------------------------------
+
 if not DEBUG:
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_PROXY_SSL_HEADER = (
+        "HTTP_X_FORWARDED_PROTO",
+        "https",
+    )
+
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
     SECURE_SSL_REDIRECT = True
+
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
     X_FRAME_OPTIONS = "DENY"
+
+    SECURE_HSTS_SECONDS = 3600
 
 
 # ---------------------------------
 # DEFAULT PRIMARY KEY
 # ---------------------------------
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

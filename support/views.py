@@ -1,5 +1,7 @@
 import re
 from uuid import uuid4
+from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
@@ -8,6 +10,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
+from django.db import IntegrityError
+
 
 from .models import Conversation, ChatMessage, Ticket, Order
 from chatbot.ai_service import generate_ai_response
@@ -45,7 +49,7 @@ def clear_pending_flows(request):
 # -----------------------------------------
 # CUSTOMER DASHBOARD
 # -----------------------------------------
-
+@staff_member_required
 def dashboard(request):
 
     total_conversations = Conversation.objects.count()
@@ -569,17 +573,12 @@ def chat(request):
         elif request.session.get("pending_order_id"):
 
             pending_order_id = request.session.get(
-
                 "pending_order_id"
-
             )
 
             email_match = re.search(
-
                 EMAIL_PATTERN,
-
                 message
-
             )
 
             if email_match:
@@ -589,59 +588,38 @@ def chat(request):
                 try:
 
                     order = Order.objects.get(
-
-                        id=pending_order_id,
-
+                        order_id__iexact=pending_order_id,
                         customer_email__iexact=customer_email
-
                     )
 
                     ai_reply = (
-
                         "Your order details:\n"
-
                         f"Order ID: {order.order_id}\n"
-
                         f"Customer: {order.customer_name}\n"
-
                         f"Product: {order.product_name}\n"
-
                         f"Current Status: {order.status}"
-
                     )
-
-                    request.session.pop(
-
-                        "pending_order_id",
-
-                        None
-
-                    )
-
 
                 except Order.DoesNotExist:
 
                     ai_reply = (
-
                         "We could not find an order matching "
-
                         "that Order ID and email address. "
-
-                        "Please check your registered email address "
-
-                        "and try again."
-
+                        "Please check your registered email address."
                     )
 
+                finally:
+
+                    request.session.pop(
+                        "pending_order_id",
+                        None
+                    )
 
             else:
 
-                ai_reply = (
-
-                    "Please enter a valid registered email address "
-
-                    "to verify your order."
-
+                request.session.pop(
+                    "pending_order_id",
+                    None
                 )
 
         # ---------------------------------
@@ -748,27 +726,25 @@ def chat(request):
 # CLEAR CUSTOMER CHAT
 # -----------------------------------------
 
+@require_POST
 def clear_chat(request):
 
-    if request.method == "POST":
+    session_key = request.session.session_key
 
-        session_key = request.session.session_key
+    if session_key:
+        ChatMessage.objects.filter(
+            session_key=session_key
+        ).delete()
 
-        if session_key:
-
-            ChatMessage.objects.filter(
-                session_key=session_key
-            ).delete()
-
-        clear_pending_flows(request)
+    clear_pending_flows(request)
 
     return redirect("chat")
-
 
 # -----------------------------------------
 # ALL CUSTOMER CHAT HISTORY
 # -----------------------------------------
 
+@staff_member_required
 def chat_history(request):
 
     search_query = request.GET.get(
@@ -786,12 +762,13 @@ def chat_history(request):
     )
 
     if search_query:
-
         customer_chats = customer_chats.filter(
             session_key__icontains=search_query
         )
 
-    customer_chats = customer_chats.order_by("-last_message_time")
+    customer_chats = customer_chats.order_by(
+        "-last_message_time"
+    )
 
     return render(request, "chat_history.html", {
         "customer_chats": customer_chats,
@@ -803,6 +780,7 @@ def chat_history(request):
 # INDIVIDUAL CUSTOMER CHAT HISTORY
 # -----------------------------------------
 
+@staff_member_required
 def customer_chat_history(request, session_key):
 
     messages = ChatMessage.objects.filter(
@@ -813,12 +791,11 @@ def customer_chat_history(request, session_key):
         "messages": messages,
         "session_key": session_key,
     })
-
-
 # -----------------------------------------
 # CREATE CUSTOMER SUPPORT TICKET
 # -----------------------------------------
 
+@require_http_methods(["GET", "POST"])
 def create_ticket(request):
 
     success = False
@@ -842,10 +819,25 @@ def create_ticket(request):
             "description", ""
         ).strip()
 
-        if customer_name and customer_email and subject and description:
+        if not all([
+            customer_name,
+            customer_email,
+            subject,
+            description
+        ]):
+            error = "Please fill in all fields."
 
+        elif len(customer_name) > 100:
+            error = "Customer name must not exceed 100 characters."
+
+        elif len(subject) > 200:
+            error = "Subject must not exceed 200 characters."
+
+        elif len(description) > 5000:
+            error = "Description must not exceed 5000 characters."
+
+        else:
             try:
-
                 validate_email(customer_email)
 
                 Ticket.objects.create(
@@ -859,19 +851,12 @@ def create_ticket(request):
                 success = True
 
             except ValidationError:
-
                 error = "Please enter a valid email address."
-
-        else:
-
-            error = "Please fill in all fields."
 
     return render(request, "create_ticket.html", {
         "success": success,
         "error": error
     })
-
-
 # -----------------------------------------
 # CUSTOMER TICKET STATUS TRACKING
 # -----------------------------------------
@@ -915,6 +900,7 @@ def check_ticket_status(request):
 # -----------------------------------------
 
 @staff_member_required
+@require_POST
 def ticket_detail(request, ticket_id):
 
     ticket = get_object_or_404(
@@ -1030,6 +1016,7 @@ def manage_tickets(request):
 # CUSTOMER ORDER TRACKING
 # -----------------------------------------
 
+@require_http_methods(["GET", "POST"])
 def track_order(request):
 
     order = None
@@ -1045,7 +1032,19 @@ def track_order(request):
             "customer_email", ""
         ).strip()
 
-        if order_id and customer_email:
+        if not order_id or not customer_email:
+
+            error = "Please enter both Order ID and Email Address."
+
+        elif len(order_id) > 20:
+
+            error = "Invalid Order ID or Email Address."
+
+        elif len(customer_email) > 254:
+
+            error = "Invalid Order ID or Email Address."
+
+        else:
 
             try:
 
@@ -1060,21 +1059,17 @@ def track_order(request):
 
                 error = "Invalid Order ID or Email Address."
 
-        else:
-
-            error = "Please enter both Order ID and Email Address."
-
     return render(request, "order_tracking.html", {
         "order": order,
         "error": error
     })
-
 
 # -----------------------------------------
 # ADMIN ADD NEW ORDER
 # -----------------------------------------
 
 @staff_member_required
+@require_http_methods(["GET", "POST"])
 def add_order(request):
 
     success = False
@@ -1096,13 +1091,16 @@ def add_order(request):
         ).strip()
 
         if not customer_name or not customer_email or not product_name:
-
             error = "Please fill in all fields."
 
+        elif len(customer_name) > 100:
+            error = "Customer name must not exceed 100 characters."
+
+        elif len(product_name) > 200:
+            error = "Product name must not exceed 200 characters."
+
         else:
-
             try:
-
                 validate_email(customer_email)
 
                 order_id = "ORD" + uuid4().hex[:10].upper()
@@ -1118,8 +1116,10 @@ def add_order(request):
                 success = True
 
             except ValidationError:
-
                 error = "Please enter a valid email address."
+
+            except IntegrityError:
+                error = "Unable to generate a unique Order ID. Please try again."
 
     return render(request, "add_order.html", {
         "success": success,
@@ -1127,13 +1127,13 @@ def add_order(request):
         "order": order,
     })
 
-
 # -----------------------------------------
 # ADMIN ORDER MANAGEMENT
 # SEARCH, STATUS FILTER AND PAGINATION
 # -----------------------------------------
 
 @staff_member_required
+@require_http_methods(["GET", "POST"])
 def manage_orders(request):
 
     success = False
@@ -1176,7 +1176,7 @@ def manage_orders(request):
 
     # UPDATE ORDER STATUS
 
-    if request.method == "POST":
+    if request.method == "POST" and "order_pk" in request.POST:
 
         order_pk = request.POST.get(
             "order_pk", ""

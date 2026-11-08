@@ -23,6 +23,4 @@ class ChatMessage(models.Model):
         return self.user.username
 
 
-from django.db import models
 
-# Create your models here.

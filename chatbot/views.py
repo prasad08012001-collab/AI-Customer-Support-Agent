@@ -1,13 +1,16 @@
+
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
-    permission_classes
+    permission_classes,
+    throttle_classes,
 )
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.throttling import UserRateThrottle
 
 from .models import ChatMessage
 from .serializers import ChatMessageSerializer
@@ -17,26 +20,44 @@ from .ai_service import generate_ai_response
 
 
 # ---------------------------------
+# CHAT API RATE LIMITING
+# ---------------------------------
+
+class ChatRateThrottle(UserRateThrottle):
+    scope = "chat"
+
+
+# ---------------------------------
 # CUSTOMER CHAT API
 # ---------------------------------
 
-@api_view(['POST'])
+@api_view(["POST"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@throttle_classes([ChatRateThrottle])
 def chat_message(request):
 
-    message = request.data.get('message', '')
+    message = request.data.get("message", "")
 
     # Validate message
     if not isinstance(message, str) or not message.strip():
         return Response(
             {
-                'error': 'Message is required'
+                "error": "Message is required"
             },
             status=status.HTTP_400_BAD_REQUEST
         )
 
     message = message.strip()
+
+    # Validate message length
+    if len(message) > 5000:
+        return Response(
+            {
+                "error": "Message must not exceed 5000 characters."
+            },
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
     try:
 
@@ -57,8 +78,8 @@ def chat_message(request):
 
         return Response(
             {
-                'message': 'AI reply generated successfully!',
-                'data': serializer.data
+                "message": "AI reply generated successfully!",
+                "data": serializer.data
             },
             status=status.HTTP_201_CREATED
         )
@@ -74,9 +95,9 @@ def chat_message(request):
 
         return Response(
             {
-                'error': (
-                    'AI service is currently unavailable. '
-                    'Please try again.'
+                "error": (
+                    "AI service is currently unavailable. "
+                    "Please try again."
                 )
             },
             status=status.HTTP_502_BAD_GATEWAY
@@ -87,14 +108,14 @@ def chat_message(request):
 # CUSTOMER CHAT HISTORY API
 # ---------------------------------
 
-@api_view(['GET'])
+@api_view(["GET"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def chat_history(request):
 
     chats = ChatMessage.objects.filter(
         user=request.user
-    ).order_by('-created_at')
+    ).order_by("-created_at")
 
     serializer = ChatMessageSerializer(
         chats,
@@ -103,8 +124,8 @@ def chat_history(request):
 
     return Response(
         {
-            'message': 'Chat history retrieved successfully!',
-            'data': serializer.data
+            "message": "Chat history retrieved successfully!",
+            "data": serializer.data
         },
         status=status.HTTP_200_OK
     )

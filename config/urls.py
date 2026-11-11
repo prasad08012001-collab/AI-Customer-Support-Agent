@@ -7,7 +7,7 @@ urlpatterns = [
     # Home URL - Redirect to Dashboard
     path(
         '',
-        RedirectView.as_view(url='/dashboard/', permanent=False),
+        RedirectView.as_view(url='/chat/', permanent=False),
         name='home'
     ),
 
